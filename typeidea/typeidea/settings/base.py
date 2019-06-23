@@ -32,19 +32,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'typeidea',
     'blog',
     'config',
     'comment',
-    'captcha',
-
-    'ckeditor',
-    'ckeditor_uploader',
-    'dal',
-    'dal_select2',
-    'xadmin',
-    'crispy_forms',
-    'rest_framework',
 
     'django.contrib.admin',
     'django.contrib.auth',
