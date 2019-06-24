@@ -28,23 +28,57 @@ class TagAdmin(admin.ModelAdmin):
         return super(TagAdmin, self).save_model(request, obj, form, change)
 
 
+class CategoryOwnerFilter(admin.SimpleListFilter):
+    title = '分类过滤器'
+    parameter_name = 'owner_category'
+
+    def lookups(self, request, model_admin):
+        return Category.objects.filter(owner=request.user).values_list('id', 'name')
+
+    def queryset(self, request, queryset):
+        category_id = self.value()
+        if category_id:
+            return queryset.filter(category_id=self.value())
+        return queryset
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = [
         'title', 'category', 'status',
-        'created_time', 'operator'
+        'created_time', 'operator', 'owner'
     ]
     list_display_links = []
-    list_filter = ['category', 'tag',]
+    list_filter = [CategoryOwnerFilter]
     search_fields = ['title', 'category__name']
     actions_on_top = True
     actions_on_bottom = False
 
-    save_on_top = False
+    save_on_top = True
 
-    fields = (
-        ('category', 'title'),
-        'desc', 'status', 'content', 'tag',
+    exclude = ('owner',)
+
+    filter_horizontal = ('tag',)
+    #filter_vertical = ('tag',)
+
+    fieldsets = (
+        ('基础配置', {
+            'description': '基础配置描述',
+            'fields': (
+                ('title', 'category'),
+                'status',
+            ),
+        }),
+        ('内容', {
+            'fields': (
+                'desc',
+                'content',
+            ),
+        }),
+        ('额外信息', {
+            'classes': ('wide',),
+            'fields': ('tag',),
+        })
     )
 
     def operator(self, obj):
@@ -57,4 +91,16 @@ class PostAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.owner = request.user
         return super(PostAdmin, self).save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        qs = super(PostAdmin, self).get_queryset(request)
+        return qs.filter(owner=request.user)
+
+    '''
+    class Media:
+        css = {
+            'all': ("https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css",),
+        }
+        js = ('https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.js',)
+    '''
 
