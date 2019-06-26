@@ -2,10 +2,19 @@ from django.contrib import admin
 from .models import Post, Category, Tag
 from django.urls import reverse
 from django.utils.html import format_html
+from .adminforms import PostAdminForm
+from typeidea.custom_site import custom_site
 
 
-@admin.register(Category)
+class PostInline(admin.TabularInline):
+    fields = ('title', 'desc')
+    extra = 1
+    model = Post
+
+
+@admin.register(Category, site=custom_site)
 class CategoryAdmin(admin.ModelAdmin):
+    inlines = [PostInline]
     list_display = ('name', 'status', 'is_nav', 'created_time', 'post_count')
     fields = ('name', 'status', 'is_nav')
 
@@ -18,7 +27,7 @@ class CategoryAdmin(admin.ModelAdmin):
     post_count.short_description = '文章数量'
 
 
-@admin.register(Tag)
+@admin.register(Tag, site=custom_site)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'status', 'created_time')
     fields = ('name', 'status')
@@ -42,8 +51,9 @@ class CategoryOwnerFilter(admin.SimpleListFilter):
         return queryset
 
 
-@admin.register(Post)
+@admin.register(Post, site=custom_site)
 class PostAdmin(admin.ModelAdmin):
+    form = PostAdminForm
     list_display = [
         'title', 'category', 'status',
         'created_time', 'operator', 'owner'
@@ -84,7 +94,7 @@ class PostAdmin(admin.ModelAdmin):
     def operator(self, obj):
         return format_html(
             '<a href="{}">编辑</a>',
-            reverse('admin:blog_post_change', args=(obj.id,))
+            reverse('cus_admin:blog_post_change', args=(obj.id,))
         )
     operator.short_description = '操作'
     
@@ -103,4 +113,6 @@ class PostAdmin(admin.ModelAdmin):
         }
         js = ('https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.js',)
     '''
+
+
 
